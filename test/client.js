@@ -32,9 +32,9 @@ var Errors = require('../lib/errors');
 
 var helpers = {};
 
-helpers.toAtom = function(btc) {
+helpers.toExel = function(btc) {
   if (_.isArray(btc)) {
-    return _.map(btc, helpers.toAtom);
+    return _.map(btc, helpers.toExel);
   } else {
     return parseFloat((btc * 1e8).toPrecision(12));
   }
@@ -94,7 +94,7 @@ helpers.generateUtxos = function(scriptType, publicKeyRing, path, requiredSignat
     var obj = {
       txid: Bitcore.crypto.Hash.sha256(new Buffer(i)).toString('hex'),
       vout: 100,
-      atoms: helpers.toAtom(amount),
+      exels: helpers.toExel(amount),
       scriptPubKey: scriptPubKey.toBuffer().toString('hex'),
       address: address.address,
       path: path,
@@ -443,7 +443,7 @@ describe('client API', function() {
         var t2 = new Bitcore.Transaction(t);
         t2.inputs.length.should.equal(2);
         t2.outputs.length.should.equal(2);
-        t2.outputs[0].atoms.should.equal(1200);
+        t2.outputs[0].exels.should.equal(1200);
       });
       it('should build a tx correctly (BIP44)', function() {
         var toAddress = 'msj42CCGruhRsFrGATiUuh25dtxYtnpbTx';
@@ -576,7 +576,7 @@ describe('client API', function() {
             to: sinon.stub(),
             change: sinon.stub(),
             outputs: [{
-              atoms: 1000,
+              exels: 1000,
             }],
             fee: sinon.stub(),
           }
@@ -663,11 +663,11 @@ describe('client API', function() {
         should.not.exist(bitcoreError);
         t.outputs.length.should.equal(4);
         t.outputs[0].script.toHex().should.equal(txp.outputs[0].script);
-        t.outputs[0].atoms.should.equal(txp.outputs[0].amount);
+        t.outputs[0].exels.should.equal(txp.outputs[0].amount);
         t.outputs[1].script.toHex().should.equal(txp.outputs[1].script);
-        t.outputs[1].atoms.should.equal(txp.outputs[1].amount);
+        t.outputs[1].exels.should.equal(txp.outputs[1].amount);
         t.outputs[2].script.toHex().should.equal(txp.outputs[2].script);
-        t.outputs[2].atoms.should.equal(txp.outputs[2].amount);
+        t.outputs[2].exels.should.equal(txp.outputs[2].amount);
         var changeScript = Bitcore.Script.fromAddress(txp.changeAddress.address).toHex();
         t.outputs[3].script.toHex().should.equal(changeScript);
       });
@@ -1614,11 +1614,11 @@ describe('client API', function() {
       clients[0].getSendMaxInfo(opts, function(err, result) {
         should.not.exist(err);
         result.inputs.length.should.not.equal(0);
-        var totalAtoms = 0;
+        var totalExels = 0;
         _.each(result.inputs, function(i) {
-          totalAtoms = totalAtoms + i.atoms;
+          totalExels = totalExels + i.exels;
         });
-        result.amount.should.be.equal(totalAtoms - result.fee);
+        result.amount.should.be.equal(totalExels - result.fee);
         done();
       });
     });
@@ -2171,7 +2171,7 @@ describe('client API', function() {
             clients[0].getUtxos(opts, function(err, utxos) {
               should.not.exist(err);
               utxos.length.should.equal(2);
-              _.sum(utxos, 'atoms').should.equal(2 * 1e8);
+              _.sum(utxos, 'exels').should.equal(2 * 1e8);
               done();
             });
 
@@ -4515,7 +4515,7 @@ describe('client API', function() {
   });
 
   describe('Private key encryption', function() {
-    var password = 'jesuisatom';
+    var password = 'jesuisexel';
     var c1, c2;
     var importedClient;
 
@@ -4893,7 +4893,7 @@ describe('client API', function() {
           should.exist(tx);
           tx.outputs.length.should.equal(1);
           var output = tx.outputs[0];
-          output.atoms.should.equal(123 * 1e8 - 10000);
+          output.exels.should.equal(123 * 1e8 - 10000);
           var script = new Bitcore.Script.buildPublicKeyHashOut(Bitcore.Address.fromString('1GG3JQikGC7wxstyavUBDoCJ66bWLLENZC'));
           output.script.toString('hex').should.equal(script.toString('hex'));
           done();
